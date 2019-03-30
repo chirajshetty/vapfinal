@@ -3,13 +3,15 @@ swagger: "2.0"
 info:
   description: "VAP Final Project"
   version: "1.0.0"
-  title: "Product Cart "
-host: locahost:3000
-basePath: "/"
+  title: "Product Inventory "
+host: petstore.swagger.io
+basePath: "/v2"
+
 tags:
-- name: "item"
-- name: "Category "
-  description: "Category of items "
+- name: basic
+- name: search
+- name: attributes 
+
 
 
 schemes:
@@ -20,7 +22,7 @@ paths:
       
     post:
       tags:
-      - "item"
+      - "basic"
       summary: "adding new item to the inventory"
       operationId: "additem"
       consumes:
@@ -48,7 +50,7 @@ paths:
   
     post:
       tags:
-      - "item"
+      - "basic"
       summary: "uploads an image of the item"
       description: ""
       operationId: "uploadFile"
@@ -80,10 +82,10 @@ paths:
             $ref: "#/definitions/ApiResponse"
       x-swagger-router-controller: "Item"
       
-  '/item/{itemid}':
+  /item/{itemid}:
     get:
       tags:
-        - item
+        - search
       consumes:
         - "application/json"
       summary: Find item by ID
@@ -107,7 +109,7 @@ paths:
           description: ITEM not found
     put :
       tags:
-        - item
+        - basic
       summary: Update an existing item
       description: ''
       operationId: updateProduct
@@ -118,12 +120,13 @@ paths:
       parameters:
         - required: true
           in: path
-          name: productID
+          name: itemid
           type: string
         - required: true
           in: body
           name: body
           description: Items that are modified
+          schema :
             $ref: '#/definitions/ITEM'
       responses:
         '200':
@@ -134,14 +137,14 @@ paths:
           description: Product not found
     delete:  
       tags:
-        - item
+        - basic
       summary: Deletes a item
       description: ''
       operationId: deleteItem
       produces:
         - application/json
       parameters:
-        - name : product id 
+        - name : itemid 
           in: path
           description: Item id to delete
           required: true
@@ -154,10 +157,227 @@ paths:
           description: Invalid ID supplied
         '404':
           description: Item not found
+          
+  /category/post:
+    post:
+      tags:
+        - basic
+      summary: Add a new category to the store listing
+      consumes:
+        - "application/json"
+      parameters:
+        - name: category
+          in: body
+          description: New Category 
+          required: true
+          schema:
+            $ref: "#/definitions/Category"
+
+      responses:
+        '200':
+          description: Succesful
+          schema:
+            type: object
+            properties:
+              success: 
+                type: boolean
+              id: 
+                type: number
+              url:
+                type: string
+        '400':
+          description: Error
+          schema:
+            type: object
+            properties:
+              success: 
+                type: boolean
+              message: 
+                type: string
+              
+  /item/findByStatus:
+    get:
+      tags:
+        - search
+      summary: Finds Items by status
+      description: Multiple status values can be provided with comma separated strings
+      operationId: findItemByStatus
+      produces:
+        - application/xml
+        - application/json
+      parameters:
+        - name: status
+          in: query
+          description: Status values that need to be considered for filter
+          required: true
+          type: array
+          items:
+            type: string
+            enum:
+              - available
+              - unavailable
+            default: available
+          collectionFormat: multi
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ITEM'
+        '400':
+          description: Invalid status value
+          
+  /item/Brand:
+    get:
+      tags:
+        - search
+      summary: Finds Items by Brand
+      description: Multiple status values can be provided with comma separated strings
+      operationId: findItemByBrand
+      produces:
+        - application/xml
+        - application/json
+      parameters:
+        - name: brand
+          in: query
+          description: Brand Choice
+          required: true
+          type: string
+
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ITEM'
+        '400':
+          description: Invalid Brand value
+          
+
+          
+  /item/Category:
+    get:
+      tags:
+        - search
+      summary: Finds Items by Category
+      description: Multiple status values can be provided with comma separated strings
+      operationId: findItemByCategory
+      produces:
+        - application/xml
+        - application/json
+      parameters:
+        - name: category
+          in: query
+          description: Category 
+          required: true
+          type: string
+
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ITEM'
+        '400':
+          description: Invalid Catergory value        
+          
+          
+  /Price/{itemid}: 
+    get:
+      tags: 
+        - attributes
+      summary: "Price of the Item with category tax"
+      parameters:
+        - name: itemid
+          type: number
+          format: int64
+          minimum: 1
+          in: path
+          required: true
+          description: The ID of the product
+      produces: 
+        - application/json
+      responses:
+        '200':
+          description: Getting the detailed prices of the object
+          schema:
+            type: object
+            properties:
+              itemid:
+                type: number
+                format: int64
+              price:
+                type: number
+                format: float64
+              category:
+                $ref: '#/definitions/Category'
+                
+        '404':
+          description: Item not found
+
+  /Pricerange/item: 
+    get:
+      tags:
+        - search
+      summary: Finds Items in the price range
+      description: Multiple status values can be provided with comma separated strings
+      operationId: findItemByPrice
+      produces:
+        - application/xml
+        - application/json
+      parameters:
+        - name: brand
+          in: query
+          description: Brand Choice
+          required: true
+          type: string
+
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ITEM'
+        '400':
+          description: Invalid Brand value
+  
+  /metadata/{itemid}: 
+    get:
+      tags: 
+        - attributes
+      summary: "extra info about the item of the Item"
+      parameters:
+        - name: itemid
+          type: number
+          format: int64
+          in: path
+          required: true
+          description: The ID of the product
+      produces: 
+        - application/json
+      responses:
+        '200':
+          description: Getting the quantity of the item 
+          schema:
+            type: object
+            properties:
+              itemid:
+                type: number
+                format: int64
+              quantity:
+                type: number
+                format: float64
+        '404':
+          description: Item not found
+
 
 
 definitions:
-  Category:
+  Category: 
     type: "object"
     properties:
       name:
@@ -205,6 +425,8 @@ definitions:
         type: number
       sku:
         type: number 
+      quantity:
+        type: number
       name:
         type: "string"
         example: "shoes"
@@ -238,22 +460,17 @@ definitions:
     example:
       name: "shoes"
       id: 0
-      category:
-        name: "name"
-        id: 6
       brand:
-        name: "name"
+        name: "nike"
       price:
         name: 1000
       tags:
       - name: "name"
         id: 1
-      - name: "name"
-        id: 1
       status: "available"
       photoUrls:
-      - "photoUrls"
-      - "photoUrls"
+      - "photoUrlssome"
+      - "photoUrlssome"
   
     
       
