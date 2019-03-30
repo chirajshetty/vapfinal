@@ -8,9 +8,9 @@ host: petstore.swagger.io
 basePath: "/v2"
 
 tags:
-- name: basic
-- name: search
-- name: attributes 
+- name: Manager
+- name: Inventory
+- name: Products 
 
 
 
@@ -22,7 +22,7 @@ paths:
       
     post:
       tags:
-      - "basic"
+      - "Manager"
       summary: "adding new item to the inventory"
       operationId: "additem"
       consumes:
@@ -50,7 +50,7 @@ paths:
   
     post:
       tags:
-      - "basic"
+      - "Manager"
       summary: "uploads an image of the item"
       description: ""
       operationId: "uploadFile"
@@ -85,7 +85,7 @@ paths:
   /item/{itemid}:
     get:
       tags:
-        - search
+        - Inventory
       consumes:
         - "application/json"
       summary: Find item by ID
@@ -109,7 +109,7 @@ paths:
           description: ITEM not found
     put :
       tags:
-        - basic
+        - Manager
       summary: Update an existing item
       description: ''
       operationId: updateProduct
@@ -137,7 +137,7 @@ paths:
           description: Product not found
     delete:  
       tags:
-        - basic
+        - Manager
       summary: Deletes a item
       description: ''
       operationId: deleteItem
@@ -158,10 +158,10 @@ paths:
         '404':
           description: Item not found
           
-  /category/post:
+  /category:
     post:
       tags:
-        - basic
+        - Manager
       summary: Add a new category to the store listing
       consumes:
         - "application/json"
@@ -172,7 +172,6 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/Category"
-
       responses:
         '200':
           description: Succesful
@@ -194,11 +193,31 @@ paths:
                 type: boolean
               message: 
                 type: string
+    put :
+      tags:
+        - Manager
+      summary: Update category to the store listing
+      consumes:
+        - "application/json"
+      parameters:
+        - name: category
+          in: body
+          description: Update Category 
+          required: true
+          schema:
+            $ref: "#/definitions/Category"
+      responses:
+        '200':
+          description: Category updated 
+        '400':
+          description: Invalid Category value
+        '404':
+          description: Category not found
               
   /item/findByStatus:
     get:
       tags:
-        - search
+        - Inventory
       summary: Finds Items by status
       description: Multiple status values can be provided with comma separated strings
       operationId: findItemByStatus
@@ -231,7 +250,7 @@ paths:
   /item/Brand:
     get:
       tags:
-        - search
+        - Inventory
       summary: Finds Items by Brand
       description: Multiple status values can be provided with comma separated strings
       operationId: findItemByBrand
@@ -260,7 +279,7 @@ paths:
   /item/Category:
     get:
       tags:
-        - search
+        - Inventory
       summary: Finds Items by Category
       description: Multiple status values can be provided with comma separated strings
       operationId: findItemByCategory
@@ -288,7 +307,7 @@ paths:
   /Price/{itemid}: 
     get:
       tags: 
-        - attributes
+        - Products
       summary: "Price of the Item with category tax"
       parameters:
         - name: itemid
@@ -321,7 +340,7 @@ paths:
   /Pricerange/item: 
     get:
       tags:
-        - search
+        - Inventory
       summary: Finds Items in the price range
       description: Multiple status values can be provided with comma separated strings
       operationId: findItemByPrice
@@ -348,8 +367,38 @@ paths:
   /metadata/{itemid}: 
     get:
       tags: 
-        - attributes
+        - Products
       summary: "extra info about the item of the Item"
+      parameters:
+        - name: itemid
+          type: number
+          format: int64
+          in: path
+          required: true
+          description: The ID of the product
+      produces: 
+        - application/json
+      responses:
+        '200':
+          description: Getting the quantity of the item 
+          schema:
+            type: object
+            properties:
+              itemid:
+                type: number
+                format: int64
+              metadata :
+                type: object
+                additionalProperties:
+                  type: string
+        '404':
+          description: Item not found
+          
+  /Quantity/{itemid}: 
+    get:
+      tags: 
+        - Products
+      summary: "Quantity of the Items"
       parameters:
         - name: itemid
           type: number
@@ -370,10 +419,47 @@ paths:
                 format: int64
               quantity:
                 type: number
-                format: float64
         '404':
           description: Item not found
-
+    put:
+      tags: 
+        - Products
+      summary: "update quantity of the Items"
+      parameters:
+        - name: itemid
+          type: number
+          format: int64
+          in: path
+          required: true
+          description: The ID of the product
+      produces: 
+        - application/json
+      responses:
+        '200':
+          description: Getting the quantity of the item 
+          schema:
+            type: object
+            properties:
+              itemid:
+                type: number
+                format: int64
+              quantity:
+                type: number
+        '404':
+          description: Item not found
+          
+  /brands:
+    get:
+      tags: 
+        - Products
+      summary: Brands in the inventory
+      responses:
+        "200":
+          description: successful
+          schema:
+            $ref: '#/definitions/Brands'
+        "404":
+          description: Brand not found
 
 
 definitions:
